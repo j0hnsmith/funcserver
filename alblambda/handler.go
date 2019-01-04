@@ -1,3 +1,52 @@
+/*
+Package alblambda provides a conversion wrapper so that a http.Handler (think a generic router) can be used in an AWS
+lambda function, incoming requests are routed via an application load balancer. This essentially means, subject to
+some caveats (more on those later), your http server can now be serverless (according so some definitions of
+serverless at least).
+
+Application load balancers can now send incoming requests to lambda functions, the lambda is called with a json
+payload that gets marshalled into a struct. This package takes the payload and turns it into a http.Request then \
+calls your http.Handler with it and an appropriate http.ResponseWriter (conveniently an interface) before returning
+an appropriate response to the load balancer.
+
+Here's some background info
+https://docs.aws.amazon.com/elasticloadbalancing/latest/application/lambda-functions.html.
+
+Caveats:
+
+- request & response bodies are limited to 1mb in size (headers have separate size limits)
+
+- no streaming requests/responses, request is received in full before the lambda is invoked, handler must return before
+response is sent to the load balancer
+
+- lambda functions are subject to 'cold start'. Can be as little as 100-200ms, if you use lambdas
+in private vpcs it can be ten+ seconds (being fixed in 2019? https://twitter.com/jeremy_daly/status/1068272580556087296).
+https://medium.freecodecamp.org/lambda-vpc-cold-starts-a-latency-killer-5408323278dd
+
+Example usage:
+	package main
+
+	import (
+		"net/http"
+
+		"github.com/aws/aws-lambda-go/lambda"
+		"github.com/gorilla/mux"
+		"github.com/j0hnsmith/funcserver/alblambda"
+	)
+
+	func main() {
+
+		// any http.Handler, let's use a gorilla/mux router
+		router := mux.NewRouter()
+		router.HandleFunc("/", func(resp http.ResponseWriter, req *http.Request) { resp.Write([]byte("<h1>Home</h1>")) })
+		router.HandleFunc("/products", func(resp http.ResponseWriter, req *http.Request) { resp.Write([]byte("<h1>Products</h1>")) })
+		router.HandleFunc("/articles", func(resp http.ResponseWriter, req *http.Request) { resp.Write([]byte("<h1>Articles</h1>")) })
+
+		// wrap handler to automatically convert requests/responses
+		lambda.Start(alblambda.WrapHTTPHandler(router, alblambda.ResponseOptions{}))
+	}
+
+*/
 package alblambda
 
 import (
