@@ -1,12 +1,10 @@
-package alblambda_test
+package alblambda
 
 import (
 	"context"
 	"encoding/base64"
 	"net/http"
 	"testing"
-
-	"github.com/j0hnsmith/funcserver/alblambda"
 )
 
 func TestResponse(t *testing.T) { // nolint: gocyclo
@@ -16,7 +14,7 @@ func TestResponse(t *testing.T) { // nolint: gocyclo
 			_, _ = res.Write([]byte(expectedBody))
 		})
 
-		resp := callHandlerReturnResp(t, h, alblambda.ResponseOptions{})
+		resp := callHandlerReturnResp(t, h, ResponseOptions{})
 
 		if resp.Body != expectedBody {
 			t.Errorf(`resp.Body = %q, want: "%s"`, resp.Body, expectedBody)
@@ -39,7 +37,7 @@ func TestResponse(t *testing.T) { // nolint: gocyclo
 			res.Header().Set(key2, value2)
 		})
 
-		resp := callHandlerReturnResp(t, h, alblambda.ResponseOptions{})
+		resp := callHandlerReturnResp(t, h, ResponseOptions{})
 
 		if resp.Headers[key1] != value1 {
 			t.Errorf(`resp.Headers[key1] = %q, want: "%s"`, resp.Headers[key1], value1)
@@ -59,7 +57,7 @@ func TestResponse(t *testing.T) { // nolint: gocyclo
 			res.Header()[key2] = values2
 		})
 
-		resp := callHandlerReturnResp(t, h, alblambda.ResponseOptions{MultiValueHeaders: true})
+		resp := callHandlerReturnResp(t, h, ResponseOptions{MultiValueHeaders: true})
 
 		if len(resp.MultiValueHeaders) != 2 {
 			t.Errorf(`len(resp.MultiValueHeaders) = %d, want: %d`, len(resp.MultiValueHeaders), 2)
@@ -111,7 +109,7 @@ func TestResponse(t *testing.T) { // nolint: gocyclo
 					_, _ = res.Write(body)
 				})
 
-				resp := callHandlerReturnResp(t, h, alblambda.ResponseOptions{})
+				resp := callHandlerReturnResp(t, h, ResponseOptions{})
 
 				if resp.Body != tc.body {
 					t.Errorf(`resp.Body = %q, want: %q`, resp.Body, tc.body)
@@ -127,13 +125,13 @@ func TestResponse(t *testing.T) { // nolint: gocyclo
 	})
 }
 
-func callHandlerReturnResp(t *testing.T, h http.Handler, opts alblambda.ResponseOptions) alblambda.Response {
-	f := alblambda.WrapHTTPHandler(h, opts)
+func callHandlerReturnResp(t *testing.T, h http.Handler, opts ResponseOptions) Response {
+	f := WrapHTTPHandler(h, opts)
 
-	albr := alblambda.ALBRequest{}
-	r, err := f(context.Background(), albr)
+	albr := aLBRequest{}
+	r, err := f(context.Background(), albrToMapStringInterface(albr))
 	if err != nil {
 		t.Error(err)
 	}
-	return r.(alblambda.Response)
+	return r.(Response)
 }

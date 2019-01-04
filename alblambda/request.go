@@ -14,15 +14,15 @@ import (
 	"github.com/j0hnsmith/funcserver"
 )
 
-// An ALBRequest represents an http request received by an application load balancer and forwarded to a alblambda function.
+// An aLBRequest represents an http request received by an application load balancer and forwarded to a alblambda function.
 // It's container to marshal json into that can be converted to a *http.Request.
 // https://docs.aws.amazon.com/lambda/latest/dg/services-alb.html
-type ALBRequest struct {
-	RequestContext                  RequestContext          `json:"RequestContext"`
+type aLBRequest struct {
+	RequestContext                  requestContext          `json:"requestContext"`
 	HTTPMethod                      string                  `json:"httpMethod"`
 	Path                            string                  `json:"path"`
-	QueryStringParameters           QueryStringParameters   `json:"QueryStringParameters,omitempty"`
-	MultiValueQueryStringParameters MVQueryStringParameters `json:"MVQueryStringParameters,omitempty"`
+	QueryStringParameters           queryStringParameters   `json:"queryStringParameters,omitempty"`
+	MultiValueQueryStringParameters mVQueryStringParameters `json:"mVQueryStringParameters,omitempty"`
 	Headers                         Headers                 `json:"Headers,omitempty"`
 	MultiValueHeaders               http.Header             `json:"multiValueHeaders,omitempty"`
 	IsBase64Encoded                 bool                    `json:"isBase64Encoded"`
@@ -32,7 +32,7 @@ type ALBRequest struct {
 	Body string `json:"body"`
 }
 
-var _ funcserver.RequestConverter = ALBRequest{}
+var _ funcserver.RequestConverter = aLBRequest{}
 
 // ELB holds information about the elastic load balancer that received the http request.
 // This is accessed via the context on a http.Request, eg ctx.Get("elb"), then type assert.
@@ -40,14 +40,14 @@ type ELB struct {
 	TargetGroupArn string `json:"targetGroupArn"`
 }
 
-// RequestContext holds information pertinent to the request.
-type RequestContext struct {
+// requestContext holds information pertinent to the request.
+type requestContext struct {
 	ELB `json:"elb"`
 }
 
 // AsHTTPRequest converts to the equivalent *http.Request so that the request can be processed via standard net/http
 // functionality.
-func (albr ALBRequest) AsHTTPRequest(ctx context.Context) (*http.Request, error) {
+func (albr aLBRequest) AsHTTPRequest(ctx context.Context) (*http.Request, error) {
 	var qp string
 	if len(albr.MultiValueQueryStringParameters) > 0 {
 		qp = albr.MultiValueQueryStringParameters.AsQueryString()
@@ -88,11 +88,11 @@ func (albr ALBRequest) AsHTTPRequest(ctx context.Context) (*http.Request, error)
 	return r, nil
 }
 
-// QueryStringParameters is a container for query params.
-type QueryStringParameters map[string]string
+// queryStringParameters is a container for query params.
+type queryStringParameters map[string]string
 
 // AsQueryString converts to a querystring as it's not possible to pass url.Values into a net.URL.
-func (qsp QueryStringParameters) AsQueryString() string {
+func (qsp queryStringParameters) AsQueryString() string {
 	b := new(strings.Builder)
 	first := true
 	for k, v := range qsp {
@@ -106,14 +106,14 @@ func (qsp QueryStringParameters) AsQueryString() string {
 	return b.String()
 }
 
-// MVQueryStringParameters is a container for multi value query params. Must be explicity enabled, mutually
-// exclusive with QueryStringParameters.
+// mVQueryStringParameters is a container for multi value query params. Must be explicity enabled, mutually
+// exclusive with queryStringParameters.
 // https://docs.aws.amazon.com/elasticloadbalancing/latest/application/lambda-functions.html#multi-value-headers
-type MVQueryStringParameters map[string][]string
+type mVQueryStringParameters map[string][]string
 
 // AsQueryString converts to a querystring with multiple values as it's not possible to pass
 // url.Values into a net.URL.
-func (mqsp MVQueryStringParameters) AsQueryString() string {
+func (mqsp mVQueryStringParameters) AsQueryString() string {
 	b := new(strings.Builder)
 	first := true
 	for k, items := range mqsp {

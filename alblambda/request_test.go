@@ -1,14 +1,15 @@
-package alblambda_test
+package alblambda
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"reflect"
 	"testing"
 
 	"github.com/j0hnsmith/funcserver"
-	"github.com/j0hnsmith/funcserver/alblambda"
 )
 
 func TestRequest(t *testing.T) { // nolint: gocyclo
@@ -20,10 +21,10 @@ func TestRequest(t *testing.T) { // nolint: gocyclo
 			}
 		})
 
-		f := alblambda.WrapHTTPHandler(h, alblambda.ResponseOptions{})
+		f := WrapHTTPHandler(h, ResponseOptions{})
 
-		albr := alblambda.ALBRequest{HTTPMethod: expectedMethod}
-		_, err := f(context.Background(), albr)
+		albr := aLBRequest{HTTPMethod: expectedMethod}
+		_, err := f(context.Background(), albrToMapStringInterface(albr))
 		if err != nil {
 			t.Error(err)
 		}
@@ -37,9 +38,9 @@ func TestRequest(t *testing.T) { // nolint: gocyclo
 			}
 		})
 
-		f := alblambda.WrapHTTPHandler(h, alblambda.ResponseOptions{})
-		albr := alblambda.ALBRequest{Path: expectedPath}
-		_, err := f(context.Background(), albr)
+		f := WrapHTTPHandler(h, ResponseOptions{})
+		albr := aLBRequest{Path: expectedPath}
+		_, err := f(context.Background(), albrToMapStringInterface(albr))
 		if err != nil {
 			t.Error(err)
 		}
@@ -50,7 +51,7 @@ func TestRequest(t *testing.T) { // nolint: gocyclo
 		val1 := "someVal1"
 		key2 := "someKey2"
 		val2 := "someVal2"
-		qp := make(alblambda.QueryStringParameters)
+		qp := make(queryStringParameters)
 		qp[key1] = val1
 		qp[key2] = val2
 
@@ -64,9 +65,9 @@ func TestRequest(t *testing.T) { // nolint: gocyclo
 			}
 		})
 
-		f := alblambda.WrapHTTPHandler(h, alblambda.ResponseOptions{})
-		albr := alblambda.ALBRequest{QueryStringParameters: qp}
-		_, err := f(context.Background(), albr)
+		f := WrapHTTPHandler(h, ResponseOptions{})
+		albr := aLBRequest{QueryStringParameters: qp}
+		_, err := f(context.Background(), albrToMapStringInterface(albr))
 		if err != nil {
 			t.Error(err)
 		}
@@ -78,7 +79,7 @@ func TestRequest(t *testing.T) { // nolint: gocyclo
 		key2 := "someKey2"
 		val2 := []string{"someVal2-1", "someVal2-2"}
 
-		qp := make(alblambda.MVQueryStringParameters)
+		qp := make(mVQueryStringParameters)
 		qp[key1] = val1
 		qp[key2] = val2
 
@@ -92,20 +93,20 @@ func TestRequest(t *testing.T) { // nolint: gocyclo
 			}
 		})
 
-		f := alblambda.WrapHTTPHandler(h, alblambda.ResponseOptions{})
-		albr := alblambda.ALBRequest{MultiValueQueryStringParameters: qp}
-		_, err := f(context.Background(), albr)
+		f := WrapHTTPHandler(h, ResponseOptions{})
+		albr := aLBRequest{MultiValueQueryStringParameters: qp}
+		_, err := f(context.Background(), albrToMapStringInterface(albr))
 		if err != nil {
 			t.Error(err)
 		}
 	})
 
-	t.Run("single value headers", func(t *testing.T) {
+	t.Run("single value Headers", func(t *testing.T) {
 		key1 := "Content-Type"
 		val1 := "application/json"
 		key2 := "Accept"
 		val2 := "text/html"
-		headers := make(alblambda.Headers)
+		headers := make(Headers)
 		headers[key1] = val1
 		headers[key2] = val2
 
@@ -118,15 +119,15 @@ func TestRequest(t *testing.T) { // nolint: gocyclo
 			}
 		})
 
-		f := alblambda.WrapHTTPHandler(h, alblambda.ResponseOptions{})
-		albr := alblambda.ALBRequest{Headers: headers}
-		_, err := f(context.Background(), albr)
+		f := WrapHTTPHandler(h, ResponseOptions{})
+		albr := aLBRequest{Headers: headers}
+		_, err := f(context.Background(), albrToMapStringInterface(albr))
 		if err != nil {
 			t.Error(err)
 		}
 	})
 
-	t.Run("multi value headers", func(t *testing.T) {
+	t.Run("multi value Headers", func(t *testing.T) {
 		key1 := http.CanonicalHeaderKey("cookie")
 		val1 := []string{"name1-1", "name1-2"}
 		key2 := http.CanonicalHeaderKey("another-header")
@@ -144,9 +145,9 @@ func TestRequest(t *testing.T) { // nolint: gocyclo
 			}
 		})
 
-		f := alblambda.WrapHTTPHandler(h, alblambda.ResponseOptions{})
-		albr := alblambda.ALBRequest{MultiValueHeaders: mvh}
-		_, err := f(context.Background(), albr)
+		f := WrapHTTPHandler(h, ResponseOptions{})
+		albr := aLBRequest{MultiValueHeaders: mvh}
+		_, err := f(context.Background(), albrToMapStringInterface(albr))
 		if err != nil {
 			t.Error(err)
 		}
@@ -186,9 +187,9 @@ func TestRequest(t *testing.T) { // nolint: gocyclo
 					}
 				})
 
-				f := alblambda.WrapHTTPHandler(h, alblambda.ResponseOptions{})
-				albr := alblambda.ALBRequest{Body: tc.rawBody, IsBase64Encoded: tc.isBase64Encoded}
-				_, err := f(context.Background(), albr)
+				f := WrapHTTPHandler(h, ResponseOptions{})
+				albr := aLBRequest{Body: tc.rawBody, IsBase64Encoded: tc.isBase64Encoded}
+				_, err := f(context.Background(), albrToMapStringInterface(albr))
 				if err != nil {
 					t.Error(err)
 				}
@@ -197,24 +198,24 @@ func TestRequest(t *testing.T) { // nolint: gocyclo
 	})
 
 	t.Run("context", func(t *testing.T) {
-		rc := alblambda.RequestContext{
-			ELB: alblambda.ELB{
+		rc := requestContext{
+			ELB: ELB{
 				TargetGroupArn: "arn:aws:elasticloadbalancing:region:123456789012:targetgroup/my-target-group/6d0ecf831eec9f09",
 			},
 		}
 
 		h := http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
-			elb := ctx.Value(funcserver.ContextKey("elb")).(alblambda.ELB)
+			elb := ctx.Value(funcserver.ContextKey("elb")).(ELB)
 			if elb.TargetGroupArn != rc.ELB.TargetGroupArn {
 				t.Errorf(`elb.TargetGroupArn = %q, want: %q`, elb.TargetGroupArn, rc.ELB.TargetGroupArn)
 			}
 		})
 
-		f := alblambda.WrapHTTPHandler(h, alblambda.ResponseOptions{})
+		f := WrapHTTPHandler(h, ResponseOptions{})
 
-		albr := alblambda.ALBRequest{RequestContext: rc}
-		_, err := f(context.Background(), albr)
+		albr := aLBRequest{RequestContext: rc}
+		_, err := f(context.Background(), albrToMapStringInterface(albr))
 		if err != nil {
 			t.Error(err)
 		}
@@ -225,10 +226,10 @@ func TestRequest(t *testing.T) { // nolint: gocyclo
 			res.WriteHeader(999)
 		})
 
-		f := alblambda.WrapHTTPHandler(h, alblambda.ResponseOptions{})
+		f := WrapHTTPHandler(h, ResponseOptions{})
 
-		albr := alblambda.ALBRequest{}
-		_, err := f(context.Background(), albr)
+		albr := aLBRequest{}
+		_, err := f(context.Background(), albrToMapStringInterface(albr))
 		if err == nil {
 			t.Error("expected error, got nil")
 		}
@@ -237,12 +238,28 @@ func TestRequest(t *testing.T) { // nolint: gocyclo
 	t.Run("req body encoding error", func(t *testing.T) {
 		h := http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {})
 
-		f := alblambda.WrapHTTPHandler(h, alblambda.ResponseOptions{})
+		f := WrapHTTPHandler(h, ResponseOptions{})
 
-		albr := alblambda.ALBRequest{Body: "not base64", IsBase64Encoded: true}
-		_, err := f(context.Background(), albr)
+		albr := aLBRequest{Body: "not base64", IsBase64Encoded: true}
+		_, err := f(context.Background(), albrToMapStringInterface(albr))
 		if err == nil {
 			t.Error("expected error, got nil")
 		}
 	})
+}
+
+func albrToMapStringInterface(albr aLBRequest) map[string]interface{} {
+	data, err := json.Marshal(albr)
+	if err != nil {
+		panic("unable to marshal aLBRequest")
+	}
+
+	m := make(map[string]interface{})
+	fmt.Println(string(data))
+	err = json.Unmarshal(data, &m)
+	if err != nil {
+		panic("unable to unmarshal into map[string]interface{}")
+	}
+
+	return m
 }
