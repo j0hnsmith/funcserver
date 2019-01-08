@@ -1,0 +1,10 @@
+# github.com/aws/aws-lambda-go v1.8.1
+github.com/aws/aws-lambda-go/lambda
+github.com/aws/aws-lambda-go/lambda/messages
+github.com/aws/aws-lambda-go/lambdacontext
+# github.com/gorilla/context v1.1.1
+github.com/gorilla/context
+# github.com/gorilla/mux v1.6.2
+github.com/gorilla/mux
+# github.com/pkg/errors v0.8.1
+github.com/pkg/errors
