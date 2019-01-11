@@ -17,12 +17,14 @@ func main() {
 	lambda.Start(alblambda.WrapHTTPHandler(router, alblambda.ResponseOptions{}))
 }
 
-//func main1() {
-//	// use the same router for development/local testing
-//	router := Router()
+// func main1() {
+// 	// use the same router for development/local testing
+// 	router := Router()
 //
-//	http.ListenAndServe(":8080", router)
-//}
+// 	if err := http.ListenAndServe(":8080", router); err != nil && err != http.ErrServerClosed {
+// 		log.Fatal(err)
+// 	}
+// }
 
 func Router() http.Handler {
 	router := mux.NewRouter()
