@@ -20,7 +20,7 @@ Caveats:
 response is sent to the load balancer
 
 - lambda functions are subject to 'cold start'. Can be as little as 100-200ms, if you use lambdas
-in private vpcs it can be ten+ seconds (being fixed in 2019? https://twitter.com/jeremy_daly/status/1068272580556087296).
+in private vpcs it can be ten+ seconds (being fixed in 2019 https://www.nuweba.com/AWS-Lambda-in-a-VPC-will-soon-be-faster).
 https://medium.freecodecamp.org/lambda-vpc-cold-starts-a-latency-killer-5408323278dd
 
 Example usage:

@@ -13,7 +13,7 @@ Of course sending requests to a `http.Handler` without the usual server will hav
 
 * no streaming requests/responses
 * request/response body size restrictions (1mb for lambda via ALB)
-* faas suffers from slow starts ([AWS VPC very slow starts to be solved in 2019](https://twitter.com/jeremy_daly/status/1068272580556087296))
+* faas suffers from slow starts ([AWS VPC very slow starts to be solved in 2019](https://www.nuweba.com/AWS-Lambda-in-a-VPC-will-soon-be-faster))
 
 Private VPC aside, whether this is a problem for you depends on your use case, it shouldn't be for the majority.
 
