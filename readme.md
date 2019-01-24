@@ -1,7 +1,7 @@
 # funcserver
 
 [![GoDoc](https://godoc.org/github.com/j0hnsmith/funcserver?status.svg)](https://godoc.org/github.com/j0hnsmith/funcserver)
-[![Go Report Card](https://goreportcard.com/badge/j0hnsmith/funcserver)](https://goreportcard.com/report/j0hnsmith/funcserver)
+[![Go Report Card](https://goreportcard.com/badge/github.com/j0hnsmith/funcserver)](https://goreportcard.com/report/github.com/j0hnsmith/funcserver)
 
 This project provides conversion wrappers to make a `http.Handler`, such as a router, work with function-as-a-service (faas) providers (currently only AWS Lambda via an ALB implemented).
 
