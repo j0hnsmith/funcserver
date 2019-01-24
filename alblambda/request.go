@@ -106,7 +106,7 @@ func (qsp queryStringParameters) AsQueryString() string {
 	return b.String()
 }
 
-// mVQueryStringParameters is a container for multi value query params. Must be explicity enabled, mutually
+// mVQueryStringParameters is a container for multi value query params. Must be explicitly enabled, mutually
 // exclusive with queryStringParameters.
 // https://docs.aws.amazon.com/elasticloadbalancing/latest/application/lambda-functions.html#multi-value-headers
 type mVQueryStringParameters map[string][]string
